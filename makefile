@@ -1,11 +1,6 @@
-createJar: *.*
-	jar cvfm AuctionHouse.jar manifest.txt *.*
-	
-runAuctionHouse: AuctionHouse.java
+run: AuctionHouse.java
 	javac -g AuctionHouse.java
-
-run: AuctionHouse.jar
-	java -jar AuctionHouse.jar
+	java AuctionHouse
 
 Client.class: Client.java
 	javac -g Client.java

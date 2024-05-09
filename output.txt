@@ -1,0 +1,1495 @@
+import java.io.Serializable;
+
+
+public class Account implements Serializable{
+    double balance;
+    
+    public Account(double balance){
+        this.balance = balance;
+    } // end constructor
+    public double getBalance (){
+        return this.balance;
+    } // end getBalance method
+    public boolean withdrawBalance(double withdraw){
+        if (withdraw > balance){
+            return false;
+        } // end if
+        else{
+            withdraw = balance - withdraw;
+            withdraw = Math.round(withdraw * 100.0) / 100.0;
+            balance = withdraw;
+            return true;
+        }// end else
+    } // end wihtdraw Balance
+    public void depositBalance(double deposit){
+        deposit += balance;
+        deposit = Math.round(deposit * 100.0) / 100.0;
+        balance = deposit;
+    } // end depositCheck
+} // end class def
+import java.io.Serializable;
+import java.util.*;
+// can I pass in the arrays as a parmeter in the constructor. Will it point to the same element?
+public class Admin extends User implements Serializable{
+    ArrayList<Customer> customerArr;
+    ArrayList<Item> unverifiedInventory;
+    ArrayList<Item> verifiedInventory;
+    ArrayList<Auction> auctionHistory;
+    Account auctionAccount;
+    public static void main(String[] args) {
+        ArrayList<Customer> customerArr = new ArrayList<Customer>();
+        ArrayList<Item> unverifiedInventory = new ArrayList<Item>();
+        ArrayList<Item> verifiedInventory = new ArrayList<Item>();
+        ArrayList<Auction> auctionHistory = new ArrayList<Auction>();
+        Account auctionAccount = new Account(100000);
+        Admin admin = new Admin(customerArr, unverifiedInventory, verifiedInventory, auctionHistory, auctionAccount, 1234);
+        admin.menu();
+    } // end main
+    
+    public Admin(ArrayList<Customer> customerArr, ArrayList<Item> unverifiedInventory, ArrayList<Item> verifiedInventory, ArrayList<Auction> auctionHistory, Account auctionAccount, int accountNum){
+        Scanner input = new Scanner(System.in);
+        boolean keepGoing = true;
+        while (keepGoing){
+            try{
+                this.customerArr = customerArr;
+                this.unverifiedInventory = unverifiedInventory;
+                this.verifiedInventory = verifiedInventory;
+                this.auctionHistory = auctionHistory;
+                this.auctionAccount = auctionAccount;
+                this.accountNum = accountNum;
+                this.name = "Nikhil";
+                this.pin = 1234;
+                keepGoing = false;
+            }catch(Exception e){
+                System.out.println("Error Message " + e.getMessage() + "\nPlease enter the data in the correct format");
+            } // end try catch
+        } // end while
+    }// end constructor
+
+    public void deleteCustomer(){
+        boolean customerFound = false;
+        Scanner input = new Scanner(System.in);
+        listCustomer();
+        System.out.println("Enter the account number of the customer you wish to delete: ");
+        int accountNum = input.nextInt();
+        for (int i = 0; i < customerArr.size(); i++){
+            if (customerArr.get(i).getAccountNum() == accountNum){
+                customerArr.remove(i);
+                System.out.println("Customer has been deleted");
+                customerFound = true;
+            } // end if
+        } // end for
+        if (!customerFound){
+            System.out.println("Customer not found");
+        } // end if
+    } // end deleteCustomer 
+
+    public void listCustomer(){
+        int i;
+        for(i = 0; i < customerArr.size(); i ++){
+            System.out.println((i + 1) + ")");
+            customerArr.get(i).viewAll();
+            System.out.println("\n");
+        } // end for
+    } // end listCustomer
+
+    public void addCustomer(){
+        boolean keepGoing = true;
+        while (keepGoing){
+            try{
+                int accountNum;
+                if (customerArr.size() == 0) {
+                    accountNum = 10000;
+                } else {
+                    accountNum = customerArr.get(customerArr.size() - 1).getAccountNum() + 1;
+                } // end if else
+                Customer cust = new Customer(accountNum);
+                customerArr.add(cust);
+                keepGoing = false;
+            }catch(Exception e){
+                System.out.println("Error Message " + e.getMessage() + "\nPlease enter the data in the correct format");
+            } // end try catch
+        } // end while
+    }// end addCustomer
+
+    public void verifyItem(){
+        Scanner input = new Scanner(System.in);
+        listUnverifiedInventory();
+        System.out.println("Enter the item ID of the item you wish to verify: ");
+        int itemID = input.nextInt();
+        for (int i = 0; i < unverifiedInventory.size(); i++){
+            if (unverifiedInventory.get(i).getItemID() == itemID){
+                unverifiedInventory.get(i).changeItemStatus();
+                if (unverifiedInventory.get(i).getStatus() == ItemStatus.VERIFIED){
+                    Item temp = unverifiedInventory.get(i);
+                    verifiedInventory.add(temp);
+                    unverifiedInventory.remove(i);
+                    System.out.println("Item has been verified. Moved to Verified Inventory!");
+                }
+                else{
+                    System.out.println("Did not change Status of the Item.");
+                } // end if else
+            } // end if
+        } // end for
+    } // end verifyItem
+    public void unverifyItem(){
+        Scanner input = new Scanner(System.in);
+        listVerifiedInventory();
+        System.out.println("Enter the item ID of the item you wish to unverify: ");
+        int itemID = input.nextInt();
+        for (int i = 0; i < verifiedInventory.size(); i++){
+            if (verifiedInventory.get(i).getItemID() == itemID){
+                verifiedInventory.get(i).changeItemStatus();
+                if(verifiedInventory.get(i).getStatus() == ItemStatus.NOTVERIFIED){
+                    Item temp = verifiedInventory.get(i);
+                    unverifiedInventory.add(temp);
+                    verifiedInventory.remove(i);
+                    System.out.println("Item has been unverified. Moved to Un Verified Inventory");
+                }
+                else{
+                    System.out.println("Did not change Status of the Item.");
+                } // end if else
+            } // end if
+        } // end for
+    } // end unverifyItem
+
+   public double getAuctionBalance(){
+        return auctionAccount.getBalance();
+   }
+    public void withdrawAuctionAccount(){
+        Scanner input = new Scanner(System.in);
+        System.out.println("The balance is: " + auctionAccount.getBalance());
+        System.out.println("How much do you want to withdraw");
+        double amount = input.nextDouble();
+        if(!auctionAccount.withdrawBalance(amount)){
+            System.out.println("Insufficient funds");
+        }
+        else{
+            System.out.println("Withdrawal successful");
+        }
+    }
+    public void depositAuctionAccount(){
+        Scanner input = new Scanner(System.in);
+        System.out.println("The balance is: " + auctionAccount.getBalance());
+        System.out.println("How much do you want to deposit");
+        double amount = input.nextDouble();
+        auctionAccount.depositBalance(amount);
+        System.out.println("Deposit successful");
+    }
+    public void listUnverifiedInventory(){
+        int i;
+        for(i = 0; i < unverifiedInventory.size(); i ++){
+            System.out.println((i + 1) + ")");
+            System.out.println(unverifiedInventory.get(i).viewAll());
+            System.out.println("\n");
+        } // end for
+    } // end listUnverifiedInventory
+    public void listVerifiedInventory(){
+        int i;
+        for(i = 0; i < verifiedInventory.size(); i ++){
+            System.out.println((i + 1) + ")");
+            System.out.println(verifiedInventory.get(i).viewAll());
+            System.out.println("\n");
+        } // end for
+    } // end listVerifiedInventory
+    public void listAuctionHistory(){
+        int i;
+        for(i = 0; i < auctionHistory.size(); i ++){
+            System.out.println((i + 1) + ")");
+            auctionHistory.get(i).viewAll();
+            System.out.println("\n");
+        } // end for
+    } // end listAuctionHistory
+
+    public void addUnverifiedItem(){
+        boolean keepGoing = true;
+        while (keepGoing){
+            try{
+                int itemID = getNewItemID();
+                Item item = new Item(itemID);
+                unverifiedInventory.add(item);
+                keepGoing = false;
+            }catch(Exception e){
+                System.out.println("Error Message " + e.getMessage() + "\nPlease enter the data in the correct format");
+            } // end try catch
+        } // end while
+    }// end addUnverifiedItem
+
+    public int getNewItemID(){
+        int itemID;
+        int tempitemID1;
+        int tempitemID2;
+        int tempitemID3;
+        itemID = 1000;
+        if(unverifiedInventory.size() == 0 || auctionHistory.size() == 0 || verifiedInventory.size() == 0){
+            if(unverifiedInventory.size() == 0 && verifiedInventory.size() != 0 && auctionHistory.size() != 0){
+                tempitemID2 = auctionHistory.get(auctionHistory.size() - 1).getItem().getItemID();
+                tempitemID3 = verifiedInventory.get(verifiedInventory.size() - 1).getItemID();
+                if (tempitemID2 > tempitemID3){
+                    itemID = tempitemID2 + 1;
+                    return itemID;
+                }
+                else{
+                    itemID = tempitemID3 + 1;
+                    return itemID;
+                } // end if else
+            }
+            else if(unverifiedInventory.size() != 0 && verifiedInventory.size() == 0 && auctionHistory.size() != 0){
+                tempitemID1 = unverifiedInventory.get(unverifiedInventory.size() - 1).getItemID();
+                tempitemID2 = auctionHistory.get(auctionHistory.size() - 1).getItem().getItemID();
+                if (tempitemID1 > tempitemID2){
+                    itemID = tempitemID1 + 1;
+                    return itemID;
+                }
+                else{
+                    itemID = tempitemID2 + 1;
+                    return itemID;
+                } // end if else
+            }
+            else if(unverifiedInventory.size() != 0 && verifiedInventory.size() != 0 && auctionHistory.size() == 0){
+                tempitemID1 = unverifiedInventory.get(unverifiedInventory.size() - 1).getItemID();
+                tempitemID3 = verifiedInventory.get(verifiedInventory.size() - 1).getItemID();
+                if (tempitemID1 > tempitemID3){
+                    itemID = tempitemID1 + 1;
+                    return itemID;
+                }
+                else{
+                    itemID = tempitemID3 + 1;
+                    return itemID;
+                } // end if else
+            }
+            else if(auctionHistory.size() != 0 && unverifiedInventory.size() == 0 && verifiedInventory.size() == 0){
+                tempitemID2 = auctionHistory.get(auctionHistory.size() - 1).getItem().getItemID();
+                itemID = tempitemID2 + 1;
+                return itemID;
+            }
+            else if(verifiedInventory.size() != 0 && unverifiedInventory.size() == 0 && auctionHistory.size() == 0){
+                tempitemID3 = verifiedInventory.get(verifiedInventory.size() - 1).getItemID();
+                itemID = tempitemID3 + 1;
+                return itemID;
+            }
+            else if(unverifiedInventory.size() != 0 && auctionHistory.size() == 0 && verifiedInventory.size() == 0){
+                tempitemID1 = unverifiedInventory.get(unverifiedInventory.size() - 1).getItemID();
+                itemID = tempitemID1 + 1;
+                return itemID;
+            }
+            else{
+                return itemID;
+            } // end else
+        } // end if
+        else{
+            tempitemID1 = unverifiedInventory.get(unverifiedInventory.size() - 1).getItemID();
+            tempitemID2 = auctionHistory.get(auctionHistory.size() - 1).getItem().getItemID();
+            tempitemID3 = verifiedInventory.get(verifiedInventory.size() - 1).getItemID();
+            if (tempitemID1 > tempitemID2 && tempitemID1 > tempitemID3){
+                itemID = tempitemID1 + 1;
+                return itemID;
+            }
+            else if(tempitemID2 > tempitemID1 && tempitemID2 > tempitemID3){
+                itemID = tempitemID2 + 1;
+                return itemID;
+            }
+            else if(tempitemID3 > tempitemID1 && tempitemID3 > tempitemID2){
+                itemID = tempitemID3 + 1;
+                return itemID;
+            }
+            else{
+                return itemID;
+            }
+        } // end if else
+    } // end getNewItemID
+
+
+    public void startAuction(){
+        Scanner input = new Scanner(System.in);
+        int itemIndex = -1;
+        int customer1Index = -1;
+        int customer2Index = -1;
+        try{
+            if(verifiedInventory.size() == 0){
+                System.out.println("No verified Items!");
+                return;
+            }else{
+                listVerifiedInventory();
+            }
+            System.out.println("Enter the item ID of the item you wish to start an auction for: ");
+            int itemID = input.nextInt();
+            boolean keepGoing;
+            while(keepGoing = true){
+                for (int i = 0; i < verifiedInventory.size(); i++){
+                    if (verifiedInventory.get(i).getItemID() == itemID){
+                        itemIndex = i;
+                        keepGoing = false;
+                    } // end if
+                } // end for
+                if (itemIndex == -1){
+                    System.out.println("Item ID not found, please enter a valid item ID: ");
+                    itemID = input.nextInt();
+                } // end if
+                else{
+                    break;
+                } // end else
+            }
+            listCustomer();
+            System.out.println("Customer 1 Please Enter your Account Number: ");
+            int customer1AccountNum = input.nextInt();
+            System.out.println("Customer 1 please enter your pin: ");
+            int customer1Pin = input.nextInt();
+            for (int i = 0; i < customerArr.size(); i++){
+                if (customerArr.get(i).getAccountNum() == customer1AccountNum && customerArr.get(i).getPin() == customer1Pin){
+                    customer1Index = i;
+                } // end if
+            } // end for
+            System.out.println("Customer 2 Please Enter your Account Number: ");
+            int customer2AccountNum = input.nextInt();
+            System.out.println("Customer 2 please enter your pin: ");
+            int customer2Pin = input.nextInt();
+            for (int i = 0; i < customerArr.size(); i++){
+                if (customerArr.get(i).getAccountNum() == customer2AccountNum && customerArr.get(i).getPin() == customer2Pin){
+                    customer2Index = i;
+                } // end if
+            } // end for
+        } catch(Exception e){
+            System.out.println("Invalid Input");
+        } // end try catch 
+        Auction auction = new Auction(verifiedInventory.get(itemIndex), customerArr.get(customer1Index), customerArr.get(customer2Index));
+        auctionHistory.add(auction);
+        customerArr.get(customer1Index).increaseAuctionAttended();
+        customerArr.get(customer2Index).increaseAuctionAttended();
+        if (auction.bidPlaced == true){
+            for (int i =0; i < customerArr.size(); i++){
+                if (customerArr.get(i).getAccountNum() == auction.getWinner().getAccountNum()){
+                    customerArr.get(i).increaseAuctionWins();
+                    customerArr.get(i).addInventory(verifiedInventory.get(itemIndex));
+                    customerArr.get(i).account.withdrawBalance(auction.getWinningBid());
+                    System.out.println(" " + auction.getWinner().getName() + ", " + auction.getWinningBid() + " has been debited from your account");
+                    auctionAccount.depositBalance(auction.getWinningBid());
+                    System.out.println("Item ID " + verifiedInventory.get(itemIndex).getName() + " added to your inventory");
+                } // end if
+            }
+            verifiedInventory.remove(itemIndex);
+        }
+    } // end startAuction
+
+    public void menu(){
+        Scanner input = new Scanner(System.in);
+        System.out.println("Welcome Admin!");
+        boolean keepGoing = true;
+        while(keepGoing){
+            try{
+                System.out.println("0. Quit \n1. List Customers \n2. List Un Verified Inventory \n3. List Verified Inventory \n4. List Auction History \n5. Add a Customer \n6. Delete a Customer \n7. Verify Items \n8. Un Verify Items \n9. Get Auction Account Balance \n10. Wihtdraw from Auction Account \n11. Deposit Auction Account \n12. Add a New Item \n13. Start a new Auction");
+                int choice = input.nextInt();
+                if (choice == 0){
+                    System.out.println("Thank you!");
+                    keepGoing = false;
+                    return;
+                }
+                else if(choice == 1){
+                    listCustomer();
+                }
+                else if(choice == 2){
+                    listUnverifiedInventory();
+                }
+                else if(choice == 3){
+                    listVerifiedInventory();
+                }
+                else if(choice == 4){
+                    listAuctionHistory();
+                }
+                else if(choice == 5){
+                    addCustomer();
+                }
+                else if(choice == 6){
+                    deleteCustomer();
+                }
+                else if(choice == 7){
+                    verifyItem();
+                }
+                else if(choice == 8){
+                    unverifyItem();
+                }
+                else if(choice == 9){
+                    System.out.println("The balance is: " + getAuctionBalance());
+                }
+                else if(choice == 10){
+                    withdrawAuctionAccount();
+                }
+                else if(choice == 11){
+                    depositAuctionAccount();
+                }
+                else if(choice == 12){
+                    addUnverifiedItem();
+                }
+                else if (choice == 13){
+                    startAuction();
+                }
+                if (choice > 13 || choice < 0){
+                    System.out.println("Invalid Choice!");
+                }
+            } // end while
+            catch(Exception e){
+                System.out.println("Invalid Input");
+            } // end try catch
+        }
+    } // end menu
+}  
+import java.io.Serializable;
+import java.util.*;
+
+
+//websockets, RMI
+public class Auction implements Serializable {
+    private transient Timer timer;
+    int timeLeft;
+    int currentBid;
+    Item item;
+    Customer participantA;
+    Customer participantB;
+    Customer winner;
+    boolean bidPlaced;
+    int percentageIncrease;
+
+    public static void main(String[] args) {
+        Item item = new Item(1234);
+        Customer a = new Customer(1000);
+        Customer b = new Customer(1001);
+        Auction auction = new Auction(item, a, b);
+        auction.viewAll();
+    } // end main   
+    public Auction(Item item, Customer participantA, Customer participantB) {
+        this.percentageIncrease = 0;
+        Scanner input = new Scanner(System.in);
+        this.timeLeft = 100;
+        this.currentBid = item.getStartBid();
+        this.item = item;
+        this.bidPlaced = false;
+        this.timer = new Timer();
+        this.participantA = participantA;
+        this.participantB = participantB;
+        this.winner = null;
+        System.out.println("The starting bid is: " + item.getStartBid());
+        boolean keepGoing = true;
+        while(keepGoing){
+            this.start();
+            System.out.println(participantA.getName() + ", what is your bid?:  ");
+            int bidA = input.nextInt();
+            if (bidA < this.participantA.account.getBalance() && placeBid(bidA, participantA)){
+                this.bidPlaced = true;
+                System.out.println("Your bid was accepted!");
+            } else {
+                System.out.println("Your bid was not accepted!");
+                if (bidA > this.participantA.account.getBalance() || bidA < this.currentBid){
+                    keepGoing = false;
+                    endAuction();
+                    System.out.println("Not a valid Bid!");
+                } // end if
+                if(winner == null && bidPlaced == false){
+                    System.out.println("The starting bid is: " + item.getStartBid());
+                } // end if
+                else{
+                    System.out.println("The Current Highest bid is: " + this.currentBid + " by " + winner.getName());
+                } // end else
+            } // end if else
+            
+            System.out.println(participantB.getName() + ", what is your bid?:  ");
+            timeLeft = 30;
+            start();
+            int bidB = input.nextInt();
+            if (bidB < this.participantB.account.getBalance() && placeBid(bidB, participantB)){
+                this.bidPlaced = true;
+                System.out.println("Your bid was accepted!");
+            } else {
+                if (bidB > this.participantB.account.getBalance() || bidB < this.currentBid){
+                    keepGoing = false;
+                    endAuction();
+                    System.out.println("You do not have enough money in your account to place this bid!");
+                } // end if
+                System.out.println("Your bid was not accepted!");
+                if(winner == null && bidPlaced == false){
+                    System.out.println("The starting bid is: " + item.getStartBid());
+                } // end if
+                else{
+                    System.out.println("The Current Highest bid is: " + currentBid + " by " + winner.getName());
+                } // end else
+            } // end if else
+        } // end while
+    } // end Acution constructor
+
+    private void start() {
+        timer.cancel();
+        timer = new Timer();
+        AuctionTimerTask timerTask = new AuctionTimerTask();
+        timer.schedule(timerTask, 0, 1000);
+    } // end start
+
+    private boolean placeBid(int newBid, Customer participant) {
+        if (newBid > currentBid) {
+            currentBid = newBid;
+            winner = participant;
+            System.out.println("New bid of " + currentBid + " placed by " + winner.getName() + "!");
+            timer.cancel();
+            timer = new Timer();
+            timeLeft = 30; // reset the timeLeft variable
+            return true;
+        } // end if 
+        else{
+            System.out.println("Better Luck next time when you have more money!");
+            return false;
+        } // end else
+    } // end placeBid
+
+    private void endAuction() {
+        timer.cancel();
+        if (bidPlaced == true) {
+            int winningBid = this.getWinningBid();
+            int startBid = item.getStartBid();
+            this.percentageIncrease = (int) ((winningBid - startBid) / (double) startBid * 100);
+            System.out.println("The winner is " + winner.getName() + "!");
+            viewAll();
+            // System.exit(0);
+        } 
+    } // end endAuction
+
+    public int getWinningBid(){
+        if (bidPlaced == true){
+            return this.currentBid;
+        } // end if
+        else{
+            return 0;
+        }
+    } // end getWinningBid
+
+    public Customer getWinner(){
+        return this.winner;
+    } // end getWinner
+
+    public Item getItem(){
+        return this.item;
+    } // end getItem
+    public int getPercentageIncrease(){
+        return this.percentageIncrease;
+    } // end getPercentageIncrease
+    
+    public void viewAll(){
+        System.out.println("\tItem: " + item.getName());
+        System.out.println("\tItem ID: " + item.getItemID());
+        System.out.println("\tStarting Bid: " + item.getStartBid());
+        System.out.println("\tWinning Bid: " + currentBid);
+        System.out.println("\tTime Left: " + timeLeft);
+        System.out.println("\tParticipant A: " + participantA.getName());
+        System.out.println("\tParticipant B: " + participantB.getName());
+        System.out.println("\tPercentage Increase: " + this.percentageIncrease + "%");
+        if (winner == null){
+            System.out.println("Item Unsold");
+        } // end if
+        else{
+            System.out.println("\tWinner: " + winner.getName());
+        }
+    } // end viewAll
+
+    private class AuctionTimerTask extends TimerTask implements Serializable{
+        public void run() {
+        //System.out.println("timerleft is: " + timeLeft);
+            if (timeLeft == 0) {
+                endAuction();
+                if (bidPlaced == false){
+                    System.out.println("No bids were placed! \n Auction ended!");
+                } // end if
+                
+            } else {
+                timeLeft--;
+                String timeLeftString = "Time left: " + timeLeft + " seconds: ";
+                System.out.print("\r" + timeLeftString);
+            } // end if else
+        } // end run
+    } // end class Def
+} // end class def
+import java.io.*;
+import java.io.Serializable;
+import java.util.*;
+import java.net.*;
+
+
+public class AuctionHouse implements Serializable{
+    Scanner input = new Scanner(System.in);
+    ArrayList<Customer> customerArr = new ArrayList<Customer>();
+    ArrayList<Item> unverifiedInventory = new ArrayList<Item>();
+    ArrayList<Item> verifiedInventory = new ArrayList<Item>();
+    ArrayList<Auction> auctionHistory = new ArrayList<Auction>();
+    Account auctionAccount = new Account(100000);
+
+    public static void main(String[] args) {
+        AuctionHouse auctionHouse = new AuctionHouse();
+    } // end main
+    public AuctionHouse(){
+        loadData();
+        System.out.println("Welcome to ArtHouse: An Object-Oriented Auction House System in Java!");
+        boolean keepGoing = true;
+        while(keepGoing){
+            try{
+                int choice;
+                System.out.println("0. Quit \n1. Login as an Admin \n2. Login as a Customer \n3. LeaderBoards");
+                choice = input.nextInt();
+                if(choice == 0){
+                    // for(int i = 0; i < customerArr.size(); i++){
+                    //     System.out.println(customerArr.get(i).getName());
+                    // }
+                    saveData();
+                    keepGoing = false;
+                    System.out.println("Thank you for your time! Have a nice day ahead!");
+                    return;
+                }
+                if (choice == 1){
+                    System.out.println("Please enter your Account Number: ");
+                    int accountNum = input.nextInt();
+                    System.out.println("Please enter your pin");
+                    int pin = input.nextInt();
+                    if (accountNum == 12345 && pin == 1234){
+                        Admin a = new Admin(customerArr, unverifiedInventory, verifiedInventory, auctionHistory, auctionAccount, 12345);
+                        a.menu();
+                    } // end if
+                    else{
+                        System.out.println("Invalid Account Number or Pin!");
+                    } // end else
+                } // end else if
+                if (choice == 2){
+                    ServerSocket serverSocket = null;
+                    try {
+                        // start listening for connections on port 8888
+                        serverSocket = new ServerSocket(8888);
+                        System.out.println("Waiting for connections on PORT 8888 ...");
+                    } catch (Exception e) {
+                        System.err.println("Could not listen on port: 8888");
+                    }
+
+                    Socket clientSocket = null;
+
+                    try {
+                        // accept client connection
+                        clientSocket = serverSocket.accept();
+
+                        System.out.println("Client Connected");
+                        
+                    } catch (IOException e) {
+                        System.err.println("Accept failed");
+                    }
+                    OutputStreamWriter os = new OutputStreamWriter(clientSocket.getOutputStream());
+                    PrintWriter out = new PrintWriter(os);
+                    Scanner scanner = new Scanner(System.in);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    String inputLine;
+                    Customer currentCustomer = null;
+
+                    int accountNum = Integer.parseInt(br.readLine());
+                    int pin = Integer.parseInt(br.readLine());
+                    System.out.println("Accoun Num: " + accountNum);
+                    System.out.println("Pin: " + pin);
+                    // search for the customer with the given account number and pin
+                    for (int i = 0; i < customerArr.size(); i++) {
+                        if (customerArr.get(i).getAccountNum() == accountNum&& customerArr.get(i).getPin() == pin) {
+                            currentCustomer = customerArr.get(i);
+                            System.out.println("Customer Found");
+                        }
+                    }
+                    ObjectOutputStream outStream = new ObjectOutputStream(clientSocket.getOutputStream ());
+                    ObjectInputStream inStream = new ObjectInputStream(clientSocket.getInputStream ());
+                    System.out.println("Name: " + currentCustomer.getName());
+                    if (currentCustomer != null) {
+                        // send the customer object to the client
+                        outStream.writeObject(currentCustomer);
+                        out.flush();
+                        // receive customer object back from client
+                        Object response = inStream.readObject();
+                        if (response instanceof Customer) {
+                            currentCustomer = (Customer) response;
+
+                        // update the customer array list
+                            for (int i = 0; i < customerArr.size(); i++) {
+                                if (customerArr.get(i).getAccountNum() == currentCustomer.getAccountNum()) {
+                                    customerArr.set(i, currentCustomer);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    // close streams and sockets
+                    out.close();
+                    br.close();
+                    clientSocket.close();
+                    serverSocket.close();
+                }
+                if (choice == 3){
+                    Leaderboard a = new Leaderboard(customerArr, auctionHistory);
+                    a.menu();
+                }
+                if (choice > 3 || choice < 0){
+                    System.out.println("Invalid Choice!");
+                }
+            } catch(Exception e){
+                
+                System.out.println("Invalid Choice!");
+            }// end try catch
+        } // end while
+    } // end constructor
+
+    public void loadData(){
+        loadAuctionHistory();
+        loadCustomerArr();
+        loadUnverifiedInventory();
+        loadVerifiedInventory();
+        loadAuctionAccount();
+    } // end loadData
+    
+    public void saveData(){
+        saveAuctionHistory();
+        saveCustomerArr();
+        saveUnverifiedInventory();
+        saveVerifiedInventory();
+        saveAuctionAccount();
+    } // end saveData
+    
+    public void loadAuctionHistory(){
+        try {
+            FileInputStream fileIn = new FileInputStream("auctionhistory.dat");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            auctionHistory = (ArrayList<Auction>) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            System.out.println("Failed to load data from file: " + i.getMessage());
+        } catch (ClassNotFoundException c) {
+            System.out.println("Auction class not found: " + c.getMessage());
+        }
+    } // end loadAuctionHistory
+    public void saveAuctionHistory(){
+        try {
+            FileOutputStream fileOut = new FileOutputStream("auctionhistory.dat");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(auctionHistory);
+            out.close();
+            fileOut.close();
+            System.out.println("Data saved successfully.");
+        } catch (IOException i) {
+            System.out.println("Failed to save data to file: " + i.getMessage());
+        }
+    } // end saveAuctionHistory
+    public void loadCustomerArr(){
+        try {
+            FileInputStream fileIn = new FileInputStream("customerarr.dat");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            customerArr = (ArrayList<Customer>) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            System.out.println("Failed to load data from file: " + i.getMessage());
+        } catch (ClassNotFoundException c) {
+            System.out.println("Customer class not found: " + c.getMessage());
+        }
+    } // end loadCustomerArr
+    public void saveCustomerArr(){
+        // for(int i = 0; i < customerArr.size(); i++){
+        //     System.out.println(customerArr.get(i).getName());
+        // }
+        try {
+            FileOutputStream fileOut = new FileOutputStream("customerarr.dat");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(customerArr);
+            out.flush();
+            out.close();
+            fileOut.close();
+            System.out.println("Data saved successfully.");
+        } catch (Exception e) {
+            System.out.println("Failed to save data to file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    } // end saveCustomerArr
+    public void loadUnverifiedInventory(){
+        try {
+            FileInputStream fileIn = new FileInputStream("unverifiedinventory.dat");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            unverifiedInventory = (ArrayList<Item>) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            System.out.println("Failed to load data from file: " + i.getMessage());
+        } catch (ClassNotFoundException c) {
+            System.out.println("Item class not found: " + c.getMessage());
+        } 
+    } // end loadUnverifiedInventory
+    public void saveUnverifiedInventory(){
+        try {
+            FileOutputStream fileOut = new FileOutputStream("unverifiedinventory.dat");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(unverifiedInventory);
+            out.close();
+            fileOut.close();
+            System.out.println("Data saved successfully.");
+        } catch (IOException i) {
+            System.out.println("Failed to save data to file: " + i.getMessage());
+        }
+    } // end saveUnverifiedInventory
+    public void loadVerifiedInventory(){
+        try {
+            FileInputStream fileIn = new FileInputStream("verifiedinventory.dat");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            verifiedInventory = (ArrayList<Item>) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            System.out.println("Failed to load data from file: " + i.getMessage());
+        } catch (ClassNotFoundException c) {
+            System.out.println("Item class not found: " + c.getMessage());
+        }
+    } // end loadVerifiedInventory
+    public void saveVerifiedInventory(){
+        try {
+            FileOutputStream fileOut = new FileOutputStream("verifiedinventory.dat");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(verifiedInventory);
+            out.close();
+            fileOut.close();
+            System.out.println("Data saved successfully.");
+        } catch (IOException i) {
+            System.out.println("Failed to save data to file: " + i.getMessage());
+        }
+    } // end saveVerifiedInventory
+    public void loadAuctionAccount(){
+        try {
+            FileInputStream fileIn = new FileInputStream("auctionaccount.dat");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            auctionAccount = (Account) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            System.out.println("Failed to load data from file: " + i.getMessage());
+        } catch (ClassNotFoundException c) {
+            System.out.println("AuctionAccount class not found: " + c.getMessage());
+        }
+    } // end loadAuctionAccount
+    public void saveAuctionAccount(){
+        try {
+            FileOutputStream fileOut = new FileOutputStream("auctionaccount.dat");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(auctionAccount);
+            out.close();
+            fileOut.close();
+            System.out.println("Data saved successfully.");
+        } catch (IOException i) {
+            System.out.println("Failed to save data to file: " + i.getMessage());
+        }
+    } // end saveAuctionAccount
+
+} // end class defs
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+public class Client {
+    public static void main(String[] args) {
+        try {
+            // create a new socket
+            Socket socket = new Socket("localhost", 8888);
+
+            // create input and output streams
+            OutputStreamWriter os = new OutputStreamWriter(socket.getOutputStream());
+            PrintWriter out = new PrintWriter(os);
+            Scanner scanner = new Scanner(System.in);
+            BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            // read account number and pin from user
+            System.out.println("Please enter your Account Number: ");
+            int accountNum = scanner.nextInt();
+            System.out.println("Please enter your pin");
+            int pin = scanner.nextInt();
+            // send account number and pin to server
+            out.println(accountNum);
+            out.println(pin);
+            out.flush();
+            ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
+            outStream.flush();
+            ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
+            // read response from server
+            Object response = inStream.readObject();
+            if (response instanceof Customer) {
+                // customer found, access the menu
+                Customer customer = (Customer) response;
+                System.out.println("Welcome " + customer.getName());
+
+                boolean keepGoing = true;
+                while (keepGoing) {
+                    // display menu
+                    System.out.println("0. Quit \n1. Customer Menu");
+                    int choice = scanner.nextInt();
+                    if (choice == 0){
+                        outStream.writeObject(customer);
+                        keepGoing = false;
+                    }
+                    if (choice == 1){
+                        customer.menu();
+                    }
+                }
+            } else if(!(response instanceof Customer)) {
+                // invalid account number or pin
+                System.out.println("Invalid Account Number or Pin!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+import java.io.Serializable;
+import java.time.*;
+import java.util.*;
+
+public class Customer extends User implements Serializable{
+    public ArrayList<Item> custInventory  = new ArrayList<Item>();
+    Account account;
+    int auctionWins;
+    int auctionAttended;
+    LocalDate birthday;
+    public static void main(String[] args) {
+        Customer cust = new Customer(1234);
+        cust.menu();
+    } // end main
+    public Customer(int accountNum) {
+        Scanner input = new Scanner(System.in);
+        boolean keepGoing = true;
+        while (keepGoing){
+            try{
+                this.accountNum = accountNum;
+                System.out.println("Enter your name: ");
+                String name = input.nextLine();
+                System.out.println("Your account number is: " + this.accountNum);
+                System.out.println("Enter the Account Pin: ");
+                int pin = input.nextInt();
+                System.out.println("Enter your birthday: ");
+                this.name = name;
+                this.pin = pin;
+                input.nextLine();
+                System.out.println("When is the birthday of the User? (In mm/dd/yyyy format)");
+                String birthday = input.nextLine();
+                String[] parts = birthday.split("/");
+                String monthStr = parts[0];
+                Month month = Month.of(Integer.parseInt(monthStr));
+                int dayStr = Integer.parseInt(parts[1]);
+                int yearStr = Integer.parseInt(parts[2]);
+                this.birthday = LocalDate.of(yearStr, month , dayStr);
+                System.out.println("How much do you want to deposit in the account?: ");
+                double deposit = input.nextDouble();
+                this.account = new Account(deposit);
+                keepGoing = false;
+            }catch(Exception e){
+                System.out.println("Error Message " + e.getMessage() + "\nPlease enter the data in the correct format");
+            } // end try catch
+        } // end while
+    } // end constructor
+    public void menu(){
+        Scanner input = new Scanner(System.in);
+        boolean keepGoing = true;
+        while (keepGoing){
+            System.out.println("0. Quit \n1. View All Information\n2. Deposit Money\n3. Withdraw Money\n4. View Inventory");
+            int choice = input.nextInt();
+            if (choice == 0){
+                keepGoing = false;
+            }
+            if (choice == 1){
+                viewAll();
+            }
+            if (choice == 2){
+                System.out.println("How much do you want to deposit?: ");
+                double deposit = input.nextDouble();
+                account.depositBalance(deposit);
+            }
+            if (choice == 3){
+                System.out.println("How much do you want to withdraw?: ");
+                double withdraw = input.nextDouble();
+                if (account.withdrawBalance(withdraw)){
+                    System.out.println("Withdraw Successful");
+                }
+                else{
+                    System.out.println("Insufficient Balance");
+                }
+            }
+            if (choice == 4){
+                listInventory();
+            }
+            // if (choice == 5){
+            //     Item a = new Item(1234);
+            //     addInventory(a);
+            // }
+            else if (choice > 4 || choice < 0){
+                System.out.println("Invalid Choice");
+            } // end else if
+        }
+    } // end menu method
+    public void addInventory(Item item){
+        custInventory.add(item);
+    } // end addInventory method\
+    public void removeInventory(Item item){
+        custInventory.remove(item);
+    } // end removeInventory method
+    public void listInventory(){
+        for (int i = 0; i < custInventory.size(); i ++){
+            System.out.println((i + 1) + ")");
+            System.out.println(custInventory.get(i).viewAll());
+        } // end for
+    } // end viewInventory method
+    public void increaseAuctionWins(){
+        this.auctionWins++;
+    } // end addAuctionWins method
+    public void increaseAuctionAttended(){
+        this.auctionAttended++;
+    } // end addAuctionAttended method
+    public int getAuctionWins(){
+        return this.auctionWins;
+    } // end getAuctionWins method
+    public int getAuctionAttended(){
+        return this.auctionAttended;
+    } // end getAuctionAttended method
+    public String viewBirthday(){
+        return this.birthday.toString();
+    } // end getBirthday method
+    public void viewAll(){
+        System.out.println("\tName: " + name);
+        System.out.println("\tAccount Number: " + accountNum);
+        System.out.println("\tPin: " + pin);
+        System.out.println("\tBirthday: " + birthday);
+        System.out.println("\tAuctions Attended: " + auctionAttended);
+        System.out.println("\tAuction Wins: " + auctionWins);
+        System.out.println("\tAccount Balance: " + account.getBalance());
+    } // end viewAll method
+    public void viewInfoLeaderBoard(){
+        System.out.println("\tName: " + name);
+        System.out.println("\tAuctions Attended: " + auctionAttended);
+        System.out.println("\tAuction Wins: " + auctionWins);
+    } // end viewInfoLeaderBoard method
+} // end class def
+import java.io.Serializable;
+
+public class GenericLL <T> implements Serializable{
+    // make a generic linked list using the nodes
+    Node <T> head;
+    int size;
+    public static void main(String[] args) {
+        GenericLL<Integer> list = new GenericLL();
+        list.add(1);
+        list.add(2);
+        list.add(3);
+        System.out.println(list.count(list.head));
+        System.out.println("\n");
+        list.traverse();
+        list.remove(1);
+        list.traverse();
+        System.out.println(list.size());
+    }
+    public GenericLL(){
+        this.head = null;
+    } // end constructor
+    public void add(Object a){
+        if (this.head == null){
+            this.head = new Node(a);
+        } // end if
+        else{
+            Node <T> temp = this.head;
+            while(temp.getNext() != null){
+                temp = temp.getNext();
+            } // end while
+            temp.setNext(new Node(a));
+        } // end else
+        this.size++;
+    } // end add
+    public void remove(int index){
+        if (index == 0){
+            this.head = this.head.getNext();
+        } // end if
+        else{
+            Node <T> temp = this.head;
+            for (int i = 0; i < index - 1; i++){
+                temp = temp.getNext();
+            } // end for
+            temp.setNext(temp.getNext().getNext());
+        } // end else
+        this.size--;
+    } // end removes
+    public void traverse(){
+        if (this.head == null){
+            System.out.println("The list is empty!");
+        } // end if
+        else{
+            Node <T> temp = this.head;
+            while(temp != null){
+                System.out.println(temp.getData());
+                temp = temp.getNext();
+            } // end while
+        } // end else
+    } // end traverse
+    public int size(){
+        return this.size;
+    } // end getSize
+
+    public Node<T> get (int index){
+        if (index == 0){
+            return this.head;
+        } // end if
+        else{
+            Node <T> temp = this.head;
+            for (int i = 0; i < index; i++){
+                temp = temp.getNext();
+            } // end for
+            return temp;
+        } // end else
+    } // end get
+    // count the size of the of the linked list after a particular node recursively
+    public int count (Node <T> currentNode){
+        if (currentNode == null){
+            return 0;
+        } // end if
+        else{
+            return 1 + count(currentNode.getNext());
+        } // end else
+    } // end count
+    public Node <T> getHead(){
+        return this.head;
+    } // end getHead
+    public void swap(Node<T> a, Node<T> b) {
+        Node<T> temp = new Node<>(a.getData());
+        a.setData(b.getData());
+        b.setData(temp.getData());
+    } // end swap
+} // end class def
+import java.io.Serializable;
+import java.util.*;
+
+public class Item implements Serializable {
+    String name;
+    int itemID;
+    int startBid;
+    ItemCategory category;
+    ItemStatus status;
+    public static void main(String[] args) {
+        Item item = new Item(1234);
+        item.changeItemStatus();
+        System.out.println(item.viewAll());
+    } // end main
+
+    public Item(int itemID) {
+        Scanner input = new Scanner(System.in);
+
+        boolean keepGoing = true;
+        while (keepGoing) {
+            try {
+                System.out.println("Enter the name of the item: ");
+                String name = input.nextLine();
+                this.itemID = itemID;
+                System.out.println("The Item ID is: " + this.itemID);
+                System.out.println("Enter the starting bid: ");
+                int startBid = input.nextInt();
+                this.status = ItemStatus.NOTVERIFIED;
+                input.nextLine();
+                selectEnumItemCategory();
+                this.name = name;
+                this.itemID = itemID;
+                this.startBid = startBid;
+                keepGoing = false;
+            } catch (Exception e) {
+                System.out.println("Error Message " + e.getMessage() + "\nPlease enter the data in the correct format");
+            }
+        }
+    } // end constructor
+
+    public String getName() {
+        return this.name;
+    } // end getName
+
+    public int getItemID() {
+        return this.itemID;
+    } // end getItemID
+
+    public int getStartBid() {
+        return this.startBid;
+    } // end getStartBid
+
+    public ItemCategory getCategory() {
+        return this.category;
+    } // end getCategory
+
+    public ItemStatus getStatus() {
+        return this.status;
+    } // end getStatus
+
+    public void changeItemStatus() {
+        Scanner input = new Scanner(System.in);
+        boolean keepGoing = true;
+        while (keepGoing) {
+            System.out.println("The item status is : " + status);
+            System.out.println("Do you want to Change the Item Status? (Y/N)");
+            String choice = input.nextLine();
+            if (choice.equalsIgnoreCase("Y")) {
+                if (this.status == ItemStatus.NOTVERIFIED) {
+                    this.status = ItemStatus.VERIFIED;
+                } else {
+                    this.status = ItemStatus.NOTVERIFIED;
+                }
+                keepGoing = false;
+            }
+            else if(choice.equalsIgnoreCase("N")){
+                keepGoing = false;
+            }
+            else{
+                System.out.println("Please enter Y or N");
+            }
+        }
+    }
+
+    public void selectEnumItemStatus() {
+        Scanner input = new Scanner(System.in);
+        boolean keepGoing = true;
+        while (keepGoing) {
+            try {
+                for (int i = 0; i < ItemStatus.values().length; i++) {
+                    System.out.println(i + ". " + ItemStatus.values()[i]);
+                }
+                System.out.println("Enter the number of the status you want to select: ");
+                int choice = input.nextInt();
+                for (int q = 0; q < ItemStatus.values().length; q++) {
+                    if (ItemStatus.values()[q] == ItemStatus.values()[choice]) {
+                        this.status = ItemStatus.values()[choice];
+                        System.out.println("You selected " + this.status);
+                        keepGoing = false;
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Error Message " + e.getMessage() + "\nPlease enter the data in the correct format");
+
+            }
+        }
+    } // end listEnumItemStatus
+
+    public void selectEnumItemCategory() {
+        Scanner input = new Scanner(System.in);
+        boolean keepGoing = true;
+        while (keepGoing) {
+            try {
+                for (int i = 0; i < ItemCategory.values().length; i++) {
+                    System.out.println(i + ". " + ItemCategory.values()[i]);
+                }
+                System.out.println("Enter the number of the category you want to select: ");
+                int choice = input.nextInt();
+                for (int q = 0; q < ItemCategory.values().length; q++) {
+                    if (ItemCategory.values()[q] == ItemCategory.values()[choice]) {
+                        this.category = ItemCategory.values()[choice];
+                        System.out.println("You selected " + this.category);
+                        keepGoing = false;
+                    }
+                }
+
+            } catch (Exception e) {
+                System.out.println("Error Message " + e.getMessage() + "\nPlease enter the data in the correct format");
+            }
+        }
+    } // end listEnumItemCategory
+    public String viewAll(){
+        return "\tItem Name: " + this.name + "\n\tItem ID: " + this.itemID + "\n\tStarting Bid: " + this.startBid + "\n\tItem Category: " + this.category + "\n\tItem Status: " + this.status;
+    }
+} // END CLASS DEF
+// Purpose: Enum for ItemCategory
+public enum ItemCategory{
+    ELECTRONICS, FURNITURE, ART, COLLECTIBLES, FASHION, OTHER;
+}
+public enum ItemStatus{
+    VERIFIED, NOTVERIFIED
+}
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class Leaderboard {
+    // make a linked list that contains information about the customers and then I can sort the linked list based on the no. of auction wins, auctions attended, most amount of money spent, etc.
+    // make a leaderboard for the auctions based on the highest winning prize, and percentage increase of the winning bid
+    GenericLL <Customer> customerArr = new GenericLL<Customer>();
+    GenericLL <Auction> auctionHistory = new GenericLL<Auction>();
+    public static void main(String[] args) {
+        // make a leaderboard for the customers
+        Customer c1 = new Customer(0);
+        Customer c2 = new Customer(1);
+        c1.increaseAuctionWins();
+        c2.increaseAuctionWins();
+        c2.increaseAuctionWins();
+        ArrayList <Customer> customerArr = new ArrayList<Customer>();
+        ArrayList <Auction> auctionHistory = new ArrayList<Auction>();
+        customerArr.add(c1);
+        customerArr.add(c2);
+        System.out.println(customerArr.get(0).getAuctionWins());
+        System.out.println(customerArr.get(1).getAuctionWins());
+        Leaderboard leaderboard = new Leaderboard(customerArr, auctionHistory);
+        System.out.println(leaderboard.customerArr.get(0).getData().getAuctionWins());
+        System.out.println(leaderboard.customerArr.get(1).getData().getAuctionWins());
+        System.out.println("\n");
+        leaderboard.sortCustomerWins();
+        System.out.println(leaderboard.customerArr.get(0).getData().getAuctionWins());
+        System.out.println(leaderboard.customerArr.get(1).getData().getAuctionWins());
+
+    } // end main
+    public Leaderboard(ArrayList<Customer> customerArr, ArrayList<Auction> auctionHistory){
+        for (int i = 0; i < customerArr.size(); i++){
+            this.customerArr.add(customerArr.get(i));
+        } // end for
+        for (int i = 0; i < auctionHistory.size(); i++){
+            this.auctionHistory.add(auctionHistory.get(i));
+        } // end for
+    } // end constructor
+    public void sortCustomerWins(){
+        // sort the customerArr based on the no. of auction wins
+        for (int i = 0; i < customerArr.size() -1; i++){
+            for (int j = 0; j < customerArr.size() - i -1; j++){
+                if (customerArr.get(j).getData().getAuctionWins() < customerArr.get(j + 1).getData().getAuctionWins()){
+                   customerArr.swap(customerArr.get(j), customerArr.get(j + 1));
+                } // end if
+            } // end for
+        } // end for
+    } // end sortCustomerWins
+    public void sortAuctionsAttended(){
+        // sort the customerArr based on the no. of auctions attended
+        for (int i = 0; i < customerArr.size() -1; i++){
+            for (int j = 0; j < customerArr.size() - i -1; j++){
+                if (customerArr.get(j).getData().getAuctionAttended() < customerArr.get(j + 1).getData().getAuctionAttended()){
+                   customerArr.swap(customerArr.get(j), customerArr.get(j + 1));
+                } // end if
+            } // end for
+        } // end for
+    } // end sortAuctionsAttended
+    public void sortHighestBid(){
+        // sort the auctionHistory based on the highest bid
+        for (int i = 0; i < auctionHistory.size() -1; i++){
+            for (int j = 0; j < auctionHistory.size() - i -1; j++){
+                if (auctionHistory.get(j).getData().getWinningBid() < auctionHistory.get(j + 1).getData().getWinningBid()){
+                   auctionHistory.swap(auctionHistory.get(j), auctionHistory.get(j + 1));
+                } // end if
+            } // end for
+        } // end for
+    } // end sortHighestBid
+    public void sortHighestPercentageIncrease(){
+        // sort the auctionHistory based on the highest percentage increase
+        for (int i = 0; i < auctionHistory.size() -1; i++){
+            for (int j = 0; j < auctionHistory.size() - i -1; j++){
+                if (auctionHistory.get(j).getData().getPercentageIncrease() < auctionHistory.get(j + 1).getData().getPercentageIncrease()){
+                   auctionHistory.swap(auctionHistory.get(j), auctionHistory.get(j + 1));
+                } // end if
+            } // end for
+        } // end for
+    } // end sortHighestPercentageIncrease
+    public void menu(){
+        Scanner input = new Scanner(System.in);
+        // make a menu for the leaderboard
+        boolean keepGoing = true;
+        while(keepGoing){
+            try{
+                System.out.println("What LeaderBoard do you want to access?");
+                System.out.println("0. Exit");
+                System.out.println("1. Customer Leaderboard by Auction Wins");
+                System.out.println("2. Customer Leaderboard by Auctions Attended");
+                System.out.println("3. Auction Leaderboard by Highest Winning Prize");
+                System.out.println("4. Auction Leaderboard by Highest Percentage Increase");
+                int choice = input.nextInt();
+                if(choice == 0){
+                    keepGoing = false;
+                    
+                }
+                if (choice == 1){
+                    // sort the customerArr based on the no. of auction wins
+                    sortCustomerWins();
+                    for (int i = 0; i < customerArr.size(); i++){
+                        System.out.println((i + 1) + ")");
+                        customerArr.get(i).getData().viewInfoLeaderBoard();
+                        System.out.println("\n");
+                    } // end for
+                } // end if
+                if (choice == 2){
+                    // sort the customerArr based on the no. of auctions attended
+                    sortAuctionsAttended();
+                    for (int i = 0; i < customerArr.size(); i++){
+                        System.out.println((i + 1) + ")");
+                        customerArr.get(i).getData().viewInfoLeaderBoard();
+                        System.out.println("\n");
+                    } // end for
+                } // end if
+                if (choice == 3){
+                    // sort the auctionHistory based on the highest bid
+                    sortHighestBid();
+                    for (int i = 0; i < auctionHistory.size(); i++){
+                        System.out.println((i + 1) + ")");
+                        auctionHistory.get(i).getData().viewAll();
+                        System.out.println("\n");
+                    } // end for
+                } // end if
+                if (choice == 4){
+                    // sort the auctionHistory based on the highest percentage increase
+                    sortHighestPercentageIncrease();
+                    for (int i = 0; i < auctionHistory.size(); i++){
+                        System.out.println((i + 1) + ")");
+                        auctionHistory.get(i).getData().viewAll();
+                        System.out.println("\n");
+                    } // end for
+                } // end if
+                else if (choice > 4 || choice < 0){
+                    System.out.println("Invalid input. Please try again.");
+                }
+            } // end try
+            catch(Exception e){
+                System.out.println("Invalid input. Please try again.");
+            } // end catch
+        } // end while
+    } // end menu
+} // end class defimport java.io.Serializable;
+
+public class Node <T> implements Serializable{
+    // make a linkedList with unkown data type that goes one way
+    private T data;
+    private Node<T> next;
+    public Node(T data){
+        this.data = data;
+        this.next = null;
+    } // end constructor
+    public Node(T data, Node<T> next){
+        this.data = data;
+        this.next = next;
+    } // end constructor
+    public T getData(){
+        return this.data;
+    } // end getData
+    public void setData(T data){
+        this.data = data;
+    } // end setData
+    public Node<T> getNext(){
+        return this.next;
+    } // end getNext
+    public void setNext(Node<T> next){
+        if(next == null){
+            this.next = null;
+            return;
+        }
+        this.next = next;
+    } // end setNext
+} // end class def
+
+
+import java.io.Serializable;
+
+// import java.util.*;
+public abstract class User implements Serializable{
+    String name;
+    int accountNum;
+    int pin;
+    
+    public String getName() {
+        return this.name;
+    } // end getName
+
+    public int getAccountNum() {
+        return this.accountNum;
+    } //end getAccountNum
+
+    public int getPin() {
+        return this.pin;
+    } // end getPin
+    public abstract void menu(); // abstract menu method
+} // end class def
